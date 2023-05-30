@@ -6,8 +6,8 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 def generate_preprocessor(num_cols: List[str], cat_cols: List[str]) -> ColumnTransformer:
     """

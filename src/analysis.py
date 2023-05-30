@@ -6,7 +6,18 @@ import pandas as pd
 import seaborn as sns
 import numpy as np
 
+logger = logging.getLogger(__name__)
+
 def save_summary_table(all_data: pd.DataFrame, save_dir: Path) -> Path:
+    """Saves a summary statistics table for a pandas dataframe
+
+    Args:
+        data: The pandas dataframe to describe
+        save_dir: The directory in which to save the summary table
+
+    Returns:
+        A Path object representing the file path of the saved summary table
+    """
     summary_path = save_dir / 'summary_table.csv'
     try:
         logging.info('Creating and saving summary table')
@@ -20,6 +31,17 @@ def save_summary_table(all_data: pd.DataFrame, save_dir: Path) -> Path:
 
 
 def save_figures(all_data: pd.DataFrame, config: dict, save_dir: Path) -> List[Path]:
+    """Creates and saves figures for each feature in a pandas dataframe
+
+    Args:
+        data: The pandas dataframe containing the data to be plotted
+        config: The configuration dictionary
+        save_dir: The directory in which to save the figures
+
+    Returns:
+        A list of Path objects representing the file paths of the saved figures
+    """
+
     fig_paths = []
 
     try:

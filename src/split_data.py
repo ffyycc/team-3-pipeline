@@ -4,6 +4,9 @@ from typing import Any
 import numpy as np
 from sklearn.model_selection import train_test_split
 
+logger = logging.getLogger(__name__)
+
+
 def split_data(data: Any, preprocessor: Any, config: dict) -> tuple:
     """
     Splits the data into train and test sets and applies the preprocessor transformation.

@@ -7,8 +7,8 @@ import pandas as pd
 from sklearn.base import BaseEstimator
 import numpy as np
 
-# configure logging
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def evaluate_model(model: BaseEstimator, x_test: Union[np.ndarray, pd.DataFrame],
                    y_test: Union[np.ndarray, pd.Series]) -> pd.DataFrame:

@@ -4,7 +4,7 @@ import os
 import re
 from time import sleep
 import botocore
-import argparse #==================
+import argparse
 import datetime
 import logging.config
 from pathlib import Path
@@ -29,6 +29,20 @@ logger = logging.getLogger("pipeline")
 
 
 def load_config(config_ref: str) -> dict:
+    """
+    Load configuration data either from an S3 bucket or from a local path.
+
+    Parameters:
+        config_ref (str): Reference to configuration data. If it starts with "s3://", it is 
+            considered as an S3 URI and configuration data is downloaded from the corresponding 
+            S3 bucket. Otherwise, it is considered as a local path.
+
+    Returns:
+        dict: Configuration data.
+
+    Raises:
+        EnvironmentError: If the config file does not exist at the specified path.
+    """
     if config_ref.startswith("s3://"):
         # Get config file from S3
         config_file = Path("config/downloaded-config.yaml")
@@ -56,6 +70,21 @@ def load_config(config_ref: str) -> dict:
 
 
 def run_pipeline(config):
+    """
+    Run a data processing pipeline based on a given configuration.
+
+    The pipeline involves the following steps:
+        Setting up output directories.
+        Downloading data from S3 bucket.
+        Preprocessing, cleaning, and generating features from the dataset.
+        Splitting the dataset.
+        Tuning and comparing different models.
+        Evaluating the best model.
+        Saving results and uploading all artifacts to S3.
+
+    Parameters:
+        config (dict): Configuration for the pipeline.
+    """
     run_config = config.get("run_config", {})
 
     # Set up output directory for saving artifacts
@@ -140,7 +169,6 @@ def run_pipeline(config):
     fig_dict = me.plot_results(model_results)
     me.save_graphs(fig_dict, other_dir / config["model_evaluation"]["plot_results"]["output_dir"])
 
-
     # Upload all artifacts to S3
     aws_config = config.get("aws")
     aws.upload_artifacts(artifacts, aws_config)
@@ -148,6 +176,16 @@ def run_pipeline(config):
 
 
 def process_message(msg: aws.Message):
+    """
+    Process a message received from an SQS queue.
+
+    The message body is expected to contain the bucket name and object key for an 
+        S3 object that contains a pipeline configuration. This configuration is then used 
+        to run a data processing pipeline.
+
+    Parameters:
+        msg (aws.Message): Message received from the SQS queue.
+    """
     message_body = json.loads(msg.body)
     bucket_name = message_body["detail"]["bucket"]["name"]
     object_key = message_body["detail"]["object"]["key"]
@@ -164,6 +202,22 @@ def main(
     delay_seconds: int = 10,
     wait_time_seconds: int = 10,
 ):
+    """
+    Continually poll an SQS queue for messages and process each one.
+
+    This function will stop processing after a certain number of consecutive empty receives 
+    (default is 3). After each message is processed, it is deleted from the queue.
+
+    Parameters:
+        sqs_queue_url (str): The URL of the SQS queue to poll for messages.
+        max_empty_receives (int, optional): The number of consecutive empty receives 
+            after which to stop processing. Default is 3.
+        delay_seconds (int, optional): The number of seconds to sleep between each poll. 
+            Default is 10.
+        wait_time_seconds (int, optional): The duration (in seconds) for which the 
+            call will wait for a message to arrive in the queue before returning. 
+            Default is 10.
+    """
     # Keep track of the number of times we ask queue for messages but receive none
     empty_receives = 0
     # After so many empty receives, we will stop processing and await the next trigger
@@ -188,6 +242,7 @@ def main(
             # Perform work based on message content
             try:
                 process_message(m)
+                logger.info("Pipeline finished.")
             # We want to suppress all errors so that we can continue processing next message
             except Exception as e:
                 logger.error("Unable to process message, continuing...")
@@ -197,16 +252,6 @@ def main(
             aws.delete_message(sqs_queue_url, m.handle)
         # Pause before asking the queue for more messages
         sleep(delay_seconds)
-
-
-
-
-# bucket_name = "group-3-models-jlv7143"
-# object_key = "configs/config.yml"
-# config_uri = f"s3://{bucket_name}/{object_key}"
-
-# config = load_config(config_uri)
-# run_pipeline(config)
 
 
 
