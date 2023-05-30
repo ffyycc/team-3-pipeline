@@ -140,11 +140,32 @@ docker run -v ~/.aws:/root/.aws -e AWS_PROFILE=personal-sso-admin pipelineimg
 
 ## Cloud Service Used
 
-### AWS ECR
+### Push the Docker Image to AWS ECR:
 
-AWS Elastic Container Registry (ECR) is where we store Docker images of our application. Each update to the application generates a new Docker image which gets pushed into ECR. This enables version control and seamless deployments.
+We create two ECR repositories: **group3-project-pipeline** and **group3-project-ui**. The first repository is used to store the Docker image for the pipeline, while the second repository is used to store the Docker image for the web application. 
 
-### AWS ECS
+For pipeline repo, you can view it on:
+https://github.com/ffyycc/team-3-ui
 
-Amazon Elastic Container Service (ECS) is where our application is hosted and run. It pulls the latest Docker image from ECR and manages the execution, scaling, and load balancing of our application.
+Then, we tag the Docker image and push it to the ECR repository:
+
+```bash
+docker tag group3-project-pipeline:latest <account_id>.dkr.ecr.<region>.amazonaws.com/group3-project-pipeline:latest
+docker push <account_id>.dkr.ecr.<region>.amazonaws.com/group3-project-pipeline:latest
+```
+
+### Deploy the Docker Image on AWS ECS: 
+
+The Docker image is deployed to the Elastic Container Service (ECS), AWS's highly scalable, high performance container orchestration service. ECS allows you to easily run and scale containerized applications on AWS.
+
+This process enables the application to run on a scalable, managed service in AWS, without the need for you to handle the underlying infrastructure. Users can access the application via a web interface and adjust various parameters to get custom house price predictions.
+
+It needs permission to read data and upload model related to s3 bucket. 
+
+The model stored data in S3 bucket is named: **group-3-raw-data**
+The model will be uploaded in the S3 bucket named: **group-3-models**
+
+Our name for ECS service is **group3-ui**
+
+You can also view the application at the following URL: http://group3-ui-1338407947.us-east-2.elb.amazonaws.com/
 
