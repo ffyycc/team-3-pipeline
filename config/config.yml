@@ -93,8 +93,8 @@ model_evaluation:
 
 aws:
   upload: True
-  bucket_raw: group-3-raw-data-jlv7143
-  bucket_model_artifacts: group-3-models-jlv7143
+  bucket_raw: group-3-raw-data
+  bucket_model_artifacts: group-3-models
   random_forest_model_name: rf_model_object.pkl
   logistic_regression_model_name: lr_model_object.pkl
   xgboost_model_name: best_model_object_XGBoost.pkl
